@@ -8,12 +8,9 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    using: 'docker'
+    image: 'web/Dockerfile'
     steps:
-    - uses: actions/checkout@v2
-    - name: Build Container
-      run: |
-        docker-compose build web
     - name: Run Tests
       run: |
-        docker-compose run web npm test
+        npm test
