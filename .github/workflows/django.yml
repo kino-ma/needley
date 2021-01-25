@@ -8,9 +8,12 @@ on:
 
 jobs:
   test:
-    using: 'docker'
-    image: 'api/Dockerfile'
+    runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
+    - name: Build container
+      run: |
+        docker-compose build api
     - name: Run Tests
       run: |
-        python manage.py test
+        docker-compose run api python manage.py test
