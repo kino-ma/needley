@@ -11,9 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build container
+    - name: Build Container and Run Tests
       run: |
         docker-compose build api
-    - name: Run Tests
-      run: |
         docker-compose run api python manage.py test

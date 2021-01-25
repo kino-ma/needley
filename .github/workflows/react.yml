@@ -11,9 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build Container
+    - name: Build Container and Run Tests
       run: |
         docker-compose build web
-    - name: Run Tests
-      run: |
         docker-compose run -e CI=true web npm test
