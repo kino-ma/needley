@@ -14,4 +14,4 @@ jobs:
     - name: Build Container and Run Tests
       run: |
         docker-compose build web
-        docker-compose run -e CI=true web npm test
+        docker-compose run -e CI=true web npm install --silent "&&" npm test
