@@ -7,6 +7,15 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+
+  web:
+    build: ./web
+    command: npm start
+    volumes:
+      - ./web:/web
+    ports:
+      - "8000:3000"
+
   api:
     build: ./api
     command: python manage.py runserver 0.0.0.0:8000
@@ -16,10 +25,3 @@ services:
       - "8001:8000"
     depends_on:
       - db
-
-  web:
-    build: ./web
-    volumes:
-      - ./web:/web
-    ports:
-      - "8000:80"
