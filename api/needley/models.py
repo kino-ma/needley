@@ -14,6 +14,9 @@ class User(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return "@%s" % self.name
+
 
 class Article(models.Model):
     # The author of this article. This field can be referenced by `article.author`
@@ -30,3 +33,7 @@ class Article(models.Model):
     # Date when data were created/updated
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "\"%s\" by @%s" % (self.title, self.author)
+
