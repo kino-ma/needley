@@ -11,7 +11,7 @@ class UserNode(DjangoObjectType):
     class Meta:
         model = User
         filter_fields = ['name', 'nickname', 'avator',
-                         'created_at', 'updated_at', 'articles']
+                         'created_at', 'updated_at']
         interfaces = (relay.Node, )
 
 
@@ -30,6 +30,12 @@ class ArticleNode(DjangoObjectType):
 
 class Query(graphene.ObjectType):
     hello = graphene.String(default_value="Hi!")
+
+    user = relay.Node.Field(UserNode)
+    all_users = DjangoFilterConnectionField(UserNode)
+
+    article = relay.Node.Field(ArticleNode)
+    all_articles = DjangoFilterConnectionField(ArticleNode)
 
 
 

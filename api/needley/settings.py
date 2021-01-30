@@ -40,7 +40,7 @@ INSTALLED_APPS = [
 
     'graphene_django', # Required for GraphiQL
 
-    'needley.apps.needleyConfig',
+    'needley.apps.NeedleyConfig',
 ]
 
 MIDDLEWARE = [
