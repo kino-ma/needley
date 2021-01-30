@@ -1,3 +1,4 @@
 Django>=3.0,<4.0
+django-filter
 psycopg2-binary>=2.8
 graphene-django
