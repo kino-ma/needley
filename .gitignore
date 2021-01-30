@@ -132,4 +132,4 @@ dmypy.json
 
 ### added ###
 # React lint cache file
-*/.eslintcache
+**/.eslintcache
