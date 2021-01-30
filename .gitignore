@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+
+### added ###
+# React lint cache file
+*/.eslintcache
