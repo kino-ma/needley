@@ -1,10 +1,14 @@
 #!/bin/bash
 
-# In this setup script, we do migrations that havo not applied yet.
+# In this setup script, we do migrations that have not applied yet and create Django super user.
 
-# If some migration tasks are left; then
-if ! python manage.py makemigrations | grep 'No changes detected' >/dev/null
-then
+apply_migrations() {
+    python manage.py makemigrations
+    # Apply migrations
+    python manage.py migrate
+}
+
+create_superuser() {
     if [[ -n "$ENV_PRODUCTION" ]]
     then
         # If running on production environment
@@ -20,11 +24,17 @@ then
         PASSWORD=$DJANGO_DEV_PASSWORD
     fi
 
-    # Apply migrations
-    python manage.py migrate
+    python manage.py create_superuser_with_password --username "$NAME" --email "$EMAIL" --password "$PASSWORD"
+}
+
+# If some migration tasks are left; then
+if ! python manage.py makemigrations | grep 'No changes detected' >/dev/null
+then
+    # Apply migriations
+    apply_migrations
 
     # Create Django superuser with given name / email / password
-    python manage.py create_superuser_with_password --username "$NAME" --email "$EMAIL" --password "$PASSWORD"
+    create_superuser
 
     echo "initiaslizing done"
 else
