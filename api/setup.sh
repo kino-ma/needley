@@ -39,6 +39,11 @@ create_superuser() {
     python manage.py create_superuser_with_password --username "$NAME" --email "$EMAIL" --password "$PASSWORD"
 }
 
+watch_schema() {
+    echo "Watching schema..."
+    python manage.py graphql_schema --watch
+}
+
 wait_for_db
 
 # If some migration tasks are left; then
@@ -54,6 +59,9 @@ then
 else
     echo "already initialized"
 fi
+
+# Automatically update specs/schema.graphql when files in this project were changed -- non-blocking
+watch_schema &
 
 # Run startup command given by docker-compose.yml or so on.
 exec "$@"

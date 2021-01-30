@@ -1,0 +1,63 @@
+schema {
+  query: Query
+}
+
+type ArticleNode implements Node {
+  id: ID!
+  author: UserNode!
+  title: String!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ArticleNodeConnection {
+  pageInfo: PageInfo!
+  edges: [ArticleNodeEdge]!
+}
+
+type ArticleNodeEdge {
+  node: ArticleNode
+  cursor: String!
+}
+
+scalar DateTime
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Query {
+  hello: String
+  user(id: ID!): UserNode
+  allUsers(offset: Int, before: String, after: String, first: Int, last: Int, name: String, nickname: String, avator: String, createdAt: DateTime, updatedAt: DateTime): UserNodeConnection
+  article(id: ID!): ArticleNode
+  allArticles(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection
+}
+
+type UserNode implements Node {
+  id: ID!
+  name: String!
+  nickname: String!
+  avator: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  author(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection!
+}
+
+type UserNodeConnection {
+  pageInfo: PageInfo!
+  edges: [UserNodeEdge]!
+}
+
+type UserNodeEdge {
+  node: UserNode
+  cursor: String!
+}
