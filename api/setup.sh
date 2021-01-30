@@ -2,8 +2,20 @@
 
 # In this setup script, we do migrations that have not applied yet and create Django super user.
 
+wait_for_db() {
+    echo -n "waiting for DB"
+
+    until python manage.py inspectdb &>/dev/null
+    do
+        echo -n '.'
+        sleep 1
+    done
+
+    echo
+    echo "DB is up. start"
+}
+
 apply_migrations() {
-    python manage.py makemigrations
     # Apply migrations
     python manage.py migrate
 }
@@ -27,8 +39,10 @@ create_superuser() {
     python manage.py create_superuser_with_password --username "$NAME" --email "$EMAIL" --password "$PASSWORD"
 }
 
+wait_for_db
+
 # If some migration tasks are left; then
-if ! python manage.py makemigrations | grep 'No changes detected' >/dev/null
+if [[ 0 < $(python manage.py showmigrations --plan | grep -v '[X]' | wc -l) ]]
 then
     # Apply migriations
     apply_migrations
