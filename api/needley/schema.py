@@ -36,8 +36,3 @@ class Query(graphene.ObjectType):
 
     article = relay.Node.Field(ArticleNode)
     all_articles = DjangoFilterConnectionField(ArticleNode)
-
-
-
-
-schema = graphene.Schema(query=Query)

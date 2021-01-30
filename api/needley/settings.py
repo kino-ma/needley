@@ -128,5 +128,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 GRAPHENE = {
-    "SCHEMA": "needley.schema.schema"
+    "SCHEMA": "schema.schema"
 }
