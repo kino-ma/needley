@@ -22,7 +22,7 @@ services:
       - DJANGO_DEV_NAME=admin
       - DJANGO_DEV_EMAIL=hoge@example.com
       - DJANGO_DEV_PASSWORD=dev-password0
-    command: python manage.py runserver 0.0.0.0:8000
+    command: ./start.sh
     volumes:
       - ./api:/code
     ports:
