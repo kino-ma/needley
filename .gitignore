@@ -133,3 +133,6 @@ dmypy.json
 ### added ###
 # React lint cache file
 **/.eslintcache
+
+# PostgreSQL data
+db/data
