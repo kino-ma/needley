@@ -2,11 +2,12 @@ from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
+import graphene
 
-from needley.models import User, Article
+from .models import User, Article
 
 
-class UserNode(DjangoObjectTypej):
+class UserNode(DjangoObjectType):
     class Meta:
         model = User
         filter_fields = ['name', 'nickname', 'avator',
@@ -14,7 +15,7 @@ class UserNode(DjangoObjectTypej):
         interfaces = (relay.Node, )
 
 
-class ArticleNode(DjangoObjectTypej):
+class ArticleNode(DjangoObjectType):
     class Meta:
         model = Article
         filter_fields = {

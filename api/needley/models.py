@@ -1,14 +1,16 @@
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MinLengthValidator
+
 
 
 class User(models.Model):
     # @someones_name
-    name = models.CharField(min_length=1, max_length=30)
+    name = models.CharField(validators=[MinLengthValidator(6)], max_length=30)
     # Nickname is display name
-    nickname = models.CharField(min_length=1, max_length=20)
+    nickname = models.CharField(validators=[MinLengthValidator(6)], max_length=20)
     # Avator is a url icon image url
-    avator = models.URLField(min_length=1, max_length=200)
+    avator = models.URLField(validators=[MinLengthValidator(6)], max_length=200)
 
     # Date when data were created/updated
     created_at = models.DateTimeField(auto_now_add=True)
@@ -26,9 +28,10 @@ class Article(models.Model):
         on_delete=models.CASCADE
     )
     # The title of this article
-    title = models.CharField(min_length=1, max_length=100)
+    title = models.CharField(validators=[MinLengthValidator(6)], max_length=100)
     # Actual content of this article
     content = models.TextField()
+
 
     # Date when data were created/updated
     created_at = models.DateTimeField(auto_now_add=True)
