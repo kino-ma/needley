@@ -19,6 +19,14 @@ class User(models.Model):
     def __str__(self):
         return "@%s" % self.name
 
+    @classmethod
+    def lookup_name(cls, name):
+        try:
+            return User.objects.get(name=name)
+        except User.DoesNotExist:
+            return None
+
+
 
 class Article(models.Model):
     # The author of this article. This field can be referenced by `article.author`
