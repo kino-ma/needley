@@ -128,6 +128,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 GRAPHENE = {
-    "SCHEMA": "schema.schema",
+    "SCHEMA": "needley.schema.schema",
     "SCHEMA_OUTPUT": "specs/schema.graphql"
 }
