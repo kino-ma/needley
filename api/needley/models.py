@@ -11,7 +11,7 @@ class User(models.Model):
     nickname = models.CharField(validators=[MinLengthValidator(1)], max_length=20)
     # Avator is a url icon image url
     avator = models.URLField(
-        validators=[MinLengthValidator(1)], max_length=200, blank=True)
+        validators=[MinLengthValidator(1)], max_length=200, null=True)
 
     # Date when data were created/updated
     created_at = models.DateTimeField(auto_now_add=True)
