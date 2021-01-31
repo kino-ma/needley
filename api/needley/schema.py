@@ -36,3 +36,34 @@ class Query(graphene.ObjectType):
 
     article = relay.Node.Field(ArticleNode)
     all_articles = DjangoFilterConnectionField(ArticleNode)
+
+
+class CreateUser(relay.ClientIDMutation):
+    class Input:
+        user_name = graphene.String(required=True)
+        user_nickname = graphene.String(required=True)
+        user_avator = graphene.String()
+
+    user = graphene.Field(UserNode)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **input):
+        name = input.get('user_name')
+        nickname = input.get('user_nickname')
+        avator = input.get('user_avator')
+
+        # name must be unique
+        if User.lookup_name(name):
+            raise Exception("User with that name already exests: %s" % name)
+
+        if not name or not nickname:
+            raise Exception(
+                "`createuser` must have both `name` and `nickname` field.")
+
+        user = User.objects.create(name=name, nickname=nickname, avator=avator)
+
+        return CreateUser(user=user)
+
+
+class Mutation(graphene.ObjectType):
+    create_user = CreateUser.Field()
