@@ -1,8 +1,9 @@
 from django.test import TestCase
 from graphene.test import Client
+from graphql_relay import to_global_id
 
 from .models import User, Article
-from .schema import schema
+from .schema import schema, UserNode
 
 fake_avator_url = "https://example.com/icon.png"
 
@@ -77,6 +78,47 @@ class CreateUserTests(TestCase):
                         'name': name,
                         'nickname': nickname,
                         'avator': avator,
+                    }
+                }
+            }
+        })
+
+
+def post_article_mutation(user_id, title, content):
+    return f'''
+        mutation {{
+            postArticle(input: {{
+                userId:"{user_id}",
+                articleTitle:"{title}",
+                articleContent:"{content}",
+            }}) {{
+                article {{
+                    title
+                    content
+                }}
+            }}
+        }}
+        '''
+
+
+class CreateUserTests(TestCase):
+    def test_post_article(self):
+        user = User.objects.create(name="hoge", nickname="hoge")
+        user_id = to_global_id(UserNode._meta.name, user.pk)
+
+        title = "fuga"
+        content = "fuga fuga content"
+
+        client = Client(schema)
+        mutation = post_article_mutation(user_id, title, content)
+        executed = client.execute(mutation)
+
+        self.assertEqual(executed, {
+            'data': {
+                'postArticle': {
+                    'article': {
+                        'title': title,
+                        'content': content,
                     }
                 }
             }
