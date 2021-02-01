@@ -53,6 +53,7 @@ class CreateUser(relay.ClientIDMutation):
     class Input:
         user_name = graphene.String(required=True)
         user_email = graphene.String(required=True)
+        user_password = graphene.String(required=True)
         user_nickname = graphene.String(required=True)
         user_avator = graphene.String()
 
@@ -62,6 +63,7 @@ class CreateUser(relay.ClientIDMutation):
     def mutate_and_get_payload(cls, root, info, **input):
         username = input.get('user_name')
         email = input.get('user_email')
+        password = input.get('user_password')
         nickname = input.get('user_nickname')
         avator = input.get('user_avator')
 
@@ -69,11 +71,8 @@ class CreateUser(relay.ClientIDMutation):
         if User.objects.filter(username=username, email=email):
             raise Exception("User with that name already exests: %s" % username)
 
-        if not username or not email or not nickname:
-            raise Exception(
-                "`createuser` must have both `name` and `nickname` field.")
-
-        user = User.objects.create(username=username)
+        user = User.objects.create(
+            username=username, email=email, password=password)
         profile = Profile.objects.create(user=user, nickname=nickname, avator=avator)
 
         return CreateUser(user=user)
