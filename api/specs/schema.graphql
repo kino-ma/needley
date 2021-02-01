@@ -1,5 +1,6 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type ArticleNode implements Node {
@@ -21,7 +22,26 @@ type ArticleNodeEdge {
   cursor: String!
 }
 
+input CreateUserInput {
+  userName: String!
+  userEmail: String!
+  userPassword: String!
+  userNickname: String!
+  userAvator: String
+  clientMutationId: String
+}
+
+type CreateUserPayload {
+  user: UserNode
+  clientMutationId: String
+}
+
 scalar DateTime
+
+type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload
+  postArticle(input: PostArticleInput!): PostArticlePayload
+}
 
 interface Node {
   id: ID!
@@ -34,21 +54,47 @@ type PageInfo {
   endCursor: String
 }
 
+input PostArticleInput {
+  userId: ID!
+  articleTitle: String!
+  articleContent: String!
+  clientMutationId: String
+}
+
+type PostArticlePayload {
+  article: ArticleNode
+  clientMutationId: String
+}
+
+type ProfileNode implements Node {
+  id: ID!
+  user: UserNode!
+  nickname: String!
+  avator: String
+}
+
 type Query {
   hello: String
   user(id: ID!): UserNode
-  allUsers(offset: Int, before: String, after: String, first: Int, last: Int, name: String, nickname: String, avator: String, createdAt: DateTime, updatedAt: DateTime): UserNodeConnection
+  allUsers(offset: Int, before: String, after: String, first: Int, last: Int, username: String, profile: ID, dateJoined: DateTime, lastLogin: DateTime): UserNodeConnection
+  profile(id: ID!): ProfileNode
   article(id: ID!): ArticleNode
   allArticles(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection
 }
 
 type UserNode implements Node {
   id: ID!
-  name: String!
-  nickname: String!
-  avator: String!
-  createdAt: DateTime!
-  updatedAt: DateTime!
+  password: String!
+  lastLogin: DateTime
+  isSuperuser: Boolean!
+  username: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+  isStaff: Boolean!
+  isActive: Boolean!
+  dateJoined: DateTime!
+  profile: ProfileNode
   author(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection!
 }
 
