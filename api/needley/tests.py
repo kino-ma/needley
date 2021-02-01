@@ -5,83 +5,90 @@ from graphql_relay import to_global_id
 from .models import User, Article
 from .schema import schema, UserNode
 
-fake_avator_url = "https://example.com/icon.png"
 
-
-class UserModelTests(TestCase):
-    def test_lookup_name_with_exist_name(self):
-        name = "test-hoge"
-        user = User.objects.create(
-            name=name, nickname=name, avator=fake_avator_url)
-        self.assertEqual(User.lookup_name(name), user)
-
-    def test_lookup_name_with_non_exist_name(self):
-        name = "test-hoge"
-        non_exist_name = "test-fuga"
-        user = User.objects.create(
-            name=name, nickname=name, avator=fake_avator_url)
-        self.assertEqual(User.lookup_name(non_exist_name), None)
-
-
-def create_user_mutation(name, nickname, avator=None):
-    return f'''
+def create_user_mutation(name, email, password, nickname, avator=None):
+    mutation = f'''
         mutation {{
             createUser(input: {{
-                userName:"{name}",
-                userNickname:"{nickname}",
-                { 'userAvator:' + avator if avator else "" }
+                userName:"{name}"
+                userEmail:"{email}"
+                userPassword:"{password}"
+                userNickname:"{nickname}"
+                { 'userAvator:"' + avator + '"' if avator else "" }
             }}) {{
                 user {{
-                    name
-                    nickname
-                    avator
+                    username
+                    profile {{
+                        nickname
+                        avator
+                    }}
                 }}
             }}
         }}
         '''
 
-
-class CreateUserTests(TestCase):
-    def test_create_user(self):
-        name = "test-hoge"
-        nickname = name
-
-        client = Client(schema)
-        mutation = create_user_mutation(name, nickname)
-        executed = client.execute(mutation)
-
-        self.assertEqual(executed, {
-            'data': {
-                'createUser': {
-                    'user': {
-                        'name': name,
-                        'nickname': nickname,
-                        'avator': None,
-                    }
-                }
-            }
-        })
-
-    def test_create_user_without_avator(self):
-        name = "test-fuga"
-        nickname = name
-        avator = None
-
-        client = Client(schema)
-        mutation = create_user_mutation(name, nickname, avator)
-        executed = client.execute(mutation)
-
-        self.assertEqual(executed, {
-            'data': {
-                'createUser': {
-                    'user': {
-                        'name': name,
+    expect = {
+        'data': {
+            'createUser': {
+                'user': {
+                    'username': name,
+                    'profile': {
                         'nickname': nickname,
                         'avator': avator,
                     }
                 }
             }
-        })
+        }
+    }
+
+    return {
+        'mutation': mutation,
+        'expect': expect
+    }
+
+fake_name1 = "hoge-test"
+fake_name2 = "fuga-test"
+fake_email1 = "test1@example.com"
+fake_email2 = "test2@example.com"
+fake_password = "HogePass-01"
+fake_avator_url = "https://example.com/icon.png"
+
+
+class CreateUserTests(TestCase):
+    def test_create_user(self):
+        self.maxDiff = None
+        name = fake_name1
+        email = fake_email1
+        password = fake_password
+        nickname = name
+        avator = fake_avator_url
+
+        client = Client(schema)
+        data = create_user_mutation(
+            name, email, password, nickname, avator=avator)
+        mutation = data['mutation']
+        expect = data['expect']
+
+        executed = client.execute(mutation)
+
+        self.assertEqual(executed, expect)
+
+    def test_create_user_without_avator(self):
+        name = fake_name2
+        email = fake_email2
+        password = fake_password
+        nickname = name
+        avator = None
+
+        client = Client(schema)
+        data = create_user_mutation(
+            name, email, password, nickname, avator=avator)
+        mutation = data['mutation']
+        expect = data['expect']
+
+        executed = client.execute(mutation)
+
+        self.assertEqual(executed, expect)
 
 
 def post_article_mutation(user_id, title, content):
@@ -101,9 +108,10 @@ def post_article_mutation(user_id, title, content):
         '''
 
 
-class CreateUserTests(TestCase):
+class PostArticleTests(TestCase):
     def test_post_article(self):
-        user = User.objects.create(name="hoge", nickname="hoge")
+        user = User.objects.create(
+            username=fake_name1, email=fake_email1, password=fake_password)
         user_id = to_global_id(UserNode._meta.name, user.pk)
 
         title = "fuga"
