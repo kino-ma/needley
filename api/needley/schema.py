@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -6,14 +7,20 @@ from graphql_relay import from_global_id
 
 import graphene
 
-from .models import User, Article
+from .models import Profile, Article
 
 
 class UserNode(DjangoObjectType):
     class Meta:
         model = User
-        filter_fields = ['name', 'nickname', 'avator',
-                         'created_at', 'updated_at']
+        filter_fields = ['username', 'profile',
+                         'date_joined', 'last_login']
+        interfaces = (relay.Node, )
+
+class ProfileNode(DjangoObjectType):
+    class Meta:
+        model = Profile
+        filter_fields = ['nickname', 'avator']
         interfaces = (relay.Node, )
 
 
@@ -36,6 +43,8 @@ class Query(graphene.ObjectType):
     user = relay.Node.Field(UserNode)
     all_users = DjangoFilterConnectionField(UserNode)
 
+    profile = relay.Node.Field(ProfileNode)
+
     article = relay.Node.Field(ArticleNode)
     all_articles = DjangoFilterConnectionField(ArticleNode)
 
@@ -43,6 +52,7 @@ class Query(graphene.ObjectType):
 class CreateUser(relay.ClientIDMutation):
     class Input:
         user_name = graphene.String(required=True)
+        user_email = graphene.String(required=True)
         user_nickname = graphene.String(required=True)
         user_avator = graphene.String()
 
@@ -50,19 +60,21 @@ class CreateUser(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
-        name = input.get('user_name')
+        username = input.get('user_name')
+        email = input.get('user_email')
         nickname = input.get('user_nickname')
         avator = input.get('user_avator')
 
         # name must be unique
-        if User.lookup_name(name):
-            raise Exception("User with that name already exests: %s" % name)
+        if User.objects.filter(username=username, email=email):
+            raise Exception("User with that name already exests: %s" % username)
 
-        if not name or not nickname:
+        if not username or not email or not nickname:
             raise Exception(
                 "`createuser` must have both `name` and `nickname` field.")
 
-        user = User.objects.create(name=name, nickname=nickname, avator=avator)
+        user = User.objects.create(username=username)
+        profile = Profile.objects.create(user=user, nickname=nickname, avator=avator)
 
         return CreateUser(user=user)
 

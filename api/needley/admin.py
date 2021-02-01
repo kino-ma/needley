@@ -1,18 +1,22 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 
 # Register your models here.
-from .models import User, Article
+from .models import Profile, Article
 
 
-class UserAdmin(admin.ModelAdmin):
+class ProfileInline(admin.StackedInline):
+    model = Profile
     fieldsets = [
-        (None, {'fields': ['name']}),
         (None, {'fields': ['nickname']}),
         (None, {'fields': ['avator']}),
     ]
-    list_display = ('name',)
-    list_filter = ['name']
-    search_fields = ['name', 'nickname']
+    search_fields = ['nickname']
+
+
+class UserAdmin(BaseUserAdmin):
+    inlines = (ProfileInline, )
 
 
 class ArticleAdmin(admin.ModelAdmin):
@@ -23,5 +27,6 @@ class ArticleAdmin(admin.ModelAdmin):
     ]
 
 
+admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Article, ArticleAdmin)

@@ -1,24 +1,24 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
+from django.contrib.auth.models import User
 
 
 
-class User(models.Model):
-    # @someones_name
-    name = models.CharField(validators=[MinLengthValidator(1)], max_length=30)
+
+
+class Profile(models.Model):
+    # User authentication model
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     # Nickname is display name
-    nickname = models.CharField(validators=[MinLengthValidator(1)], max_length=20)
+    nickname = models.CharField(
+        validators=[MinLengthValidator(1)], max_length=20)
     # Avator is a url icon image url
     avator = models.URLField(
         validators=[MinLengthValidator(1)], max_length=200, null=True)
 
-    # Date when data were created/updated
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
     def __str__(self):
-        return "@%s" % self.name
+        return "@%s" % self.user.username
 
     @classmethod
     def lookup_name(cls, name):
@@ -26,7 +26,6 @@ class User(models.Model):
             return User.objects.get(name=name)
         except User.DoesNotExist:
             return None
-
 
 
 class Article(models.Model):
@@ -37,15 +36,14 @@ class Article(models.Model):
         on_delete=models.CASCADE
     )
     # The title of this article
-    title = models.CharField(validators=[MinLengthValidator(1)], max_length=100)
+    title = models.CharField(
+        validators=[MinLengthValidator(1)], max_length=100)
     # Actual content of this article
     content = models.TextField()
-
 
     # Date when data were created/updated
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "\"%s\" by %s" % (self.title, self.author)
-
+        return "\"%s\" by %s" % (self.title, self.author.profile)
