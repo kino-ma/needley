@@ -1,6 +1,8 @@
+from django.shortcuts import get_object_or_404
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
+from graphql_relay import from_global_id
 
 import graphene
 
@@ -65,8 +67,33 @@ class CreateUser(relay.ClientIDMutation):
         return CreateUser(user=user)
 
 
+class PostArticle(relay.ClientIDMutation):
+    class Input:
+        user_id = graphene.ID(required=True)
+        article_title = graphene.String(required=True)
+        article_content = graphene.String(required=True)
+
+    article = graphene.Field(ArticleNode)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **input):
+        user_id = input.get('user_id')
+        title = input.get('article_title')
+        content = input.get('article_content')
+
+        user_pk = int(from_global_id(user_id)[1])
+        user = get_object_or_404(User, pk=user_pk)
+
+        article = Article.objects.create(
+            author=user, title=title, content=content)
+
+        return PostArticle(article=article)
+
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
+    post_article = PostArticle.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
