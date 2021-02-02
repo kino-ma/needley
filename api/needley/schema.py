@@ -16,13 +16,13 @@ class UserNode(DjangoObjectType):
         model = User
         filter_fields = ['username', 'profile', 'date_joined', 'last_login']
         fields = ['username', 'profile', 'date_joined', 'last_login']
-        #exclude = ['password', 'email']
         interfaces = (relay.Node, )
 
 class ProfileNode(DjangoObjectType):
     class Meta:
         model = Profile
         filter_fields = ['nickname', 'avator']
+        fields = ['nickname', 'avator']
         interfaces = (relay.Node, )
 
 
@@ -36,6 +36,7 @@ class ArticleNode(DjangoObjectType):
             'created_at': ['exact', 'lt', 'gt'],
             'updated_at': ['exact', 'lt', 'gt'],
         }
+        fields = ['author', 'title', 'content', 'created_at', 'updated_at']
         interfaces = (relay.Node, )
 
 
