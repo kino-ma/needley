@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, UserManager
+from django.contrib.auth import login
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -13,8 +14,9 @@ from .models import Profile, Article
 class UserNode(DjangoObjectType):
     class Meta:
         model = User
-        filter_fields = ['username', 'profile',
-                         'date_joined', 'last_login']
+        filter_fields = ['username', 'profile', 'date_joined', 'last_login']
+        fields = ['username', 'profile', 'date_joined', 'last_login']
+        #exclude = ['password', 'email']
         interfaces = (relay.Node, )
 
 class ProfileNode(DjangoObjectType):
@@ -71,9 +73,12 @@ class CreateUser(relay.ClientIDMutation):
         if User.objects.filter(username=username, email=email):
             raise Exception("User with that name already exests: %s" % username)
 
-        user = User.objects.create(
+        user = UserManager.create_user(
             username=username, email=email, password=password)
         profile = Profile.objects.create(user=user, nickname=nickname, avator=avator)
+
+        login(info.context, user)
+        print(f'logged in as {user.profile}')
 
         return CreateUser(user=user)
 
@@ -88,6 +93,9 @@ class PostArticle(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
+        if not info.context.user.is_authenticated:
+            raise Exception('Please login before posting your article.')
+
         user_id = input.get('user_id')
         title = input.get('article_title')
         content = input.get('article_content')
