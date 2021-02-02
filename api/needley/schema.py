@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User, UserManager
+from django.contrib.auth.models import User
 from django.contrib.auth import login
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
@@ -74,7 +74,7 @@ class CreateUser(relay.ClientIDMutation):
         if User.objects.filter(username=username, email=email):
             raise Exception("User with that name already exests: %s" % username)
 
-        user = UserManager.create_user(
+        user = User.objects.create_user(
             username=username, email=email, password=password)
         profile = Profile.objects.create(user=user, nickname=nickname, avator=avator)
 
