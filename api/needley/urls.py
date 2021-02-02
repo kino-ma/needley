@@ -21,5 +21,9 @@ from graphene_django.views import GraphQLView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # GraphQL query end point.
+    # In production, remove CSRF exempt.
+    #path("graphql", GraphQLView.as_view(graphiql=True)),
     path("graphql", csrf_exempt(GraphQLView.as_view(graphiql=True))),
 ]

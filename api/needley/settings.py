@@ -131,3 +131,14 @@ GRAPHENE = {
     "SCHEMA": "needley.schema.schema",
     "SCHEMA_OUTPUT": "specs/schema.graphql"
 }
+
+
+# Store CSRF token in the user's session instead of in a cookie.
+CSRF_USE_COOKIE = True
+
+# Requests HTTP are directed to HTTPS
+# SECURE_SSL_REDIRECT = True
+
+# Ensure all requests done over HTTPS
+# Having plan to enable this after this service stabilized
+# SECURE_HSTS_SECONDS = 1
