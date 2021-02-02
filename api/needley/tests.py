@@ -1,5 +1,8 @@
-from django.test import TestCase
-from graphene.test import Client
+import json
+from dataclasses import dataclass
+
+from django.test import Client, TestCase
+from graphene.test import Client as GraphQLClient
 from graphql_relay import to_global_id
 
 from .models import User, Article
@@ -46,53 +49,66 @@ def create_user_mutation(name, email, password, nickname, avator=None):
         'expect': expect
     }
 
-fake_name1 = "hoge-test"
-fake_name2 = "fuga-test"
-fake_email1 = "test1@example.com"
-fake_email2 = "test2@example.com"
-fake_password = "HogePass-01"
-fake_avator_url = "https://example.com/icon.png"
+@dataclass
+class UserData:
+    username: str
+    email: str
+    password: str
+    nickname: str = "hoge-nick"
+    avator: str = None
+    idx = 0
+
+def get_mock_user(data_only=False):
+    username = "test" + str(UserData.idx)
+    email = username + "@example.com"
+    password = "password"
+    nickname = username + " (nick)"
+    UserData.idx += 1
+
+    if data_only:
+        return UserData(username=username, email=email, password=password)
+    else:
+        return User.objects.create_user(username=username, email=email, password=password)
+
+def post_query(query, login_as=None):
+    client = Client()
+    if login_as is True:
+        user = get_mock_user()
+        client.force_login(user)
+    elif login_as:
+        client.force_login(login_as)
+
+    response = client.post('/graphql', {'query': query})
+    parsed = json.loads(response.content)
+    return parsed
 
 
 class CreateUserTests(TestCase):
     def test_create_user(self):
-        self.maxDiff = None
-        name = fake_name1
-        email = fake_email1
-        password = fake_password
-        nickname = name
-        avator = fake_avator_url
+        u = get_mock_user(data_only=True)
 
-        client = Client(schema)
         data = create_user_mutation(
-            name, email, password, nickname, avator=avator)
+            u.username, u.email, u.password, u.nickname, avator=u.avator)
         mutation = data['mutation']
         expect = data['expect']
+        result = post_query(mutation)
 
-        executed = client.execute(mutation)
-
-        self.assertEqual(executed, expect)
+        self.assertEqual(result, expect)
 
     def test_create_user_without_avator(self):
-        name = fake_name2
-        email = fake_email2
-        password = fake_password
-        nickname = name
-        avator = None
+        u = get_mock_user(data_only=True)
 
-        client = Client(schema)
         data = create_user_mutation(
-            name, email, password, nickname, avator=avator)
+            u.username, u.email, u.password, u.nickname, avator=None)
         mutation = data['mutation']
         expect = data['expect']
+        result = post_query(mutation)
 
-        executed = client.execute(mutation)
-
-        self.assertEqual(executed, expect)
+        self.assertEqual(result, expect)
 
 
 def post_article_mutation(user_id, title, content):
-    return f'''
+    mutation = f'''
         mutation {{
             postArticle(input: {{
                 userId:"{user_id}",
@@ -106,28 +122,36 @@ def post_article_mutation(user_id, title, content):
             }}
         }}
         '''
+    expect = {
+        'data': {
+            'postArticle': {
+                'article': {
+                    'title': title,
+                    'content': content,
+                }
+            }
+        }
+    }
+
+    return {
+        'mutation': mutation,
+        'expect': expect
+    }
+
+
 
 
 class PostArticleTests(TestCase):
     def test_post_article(self):
-        user = User.objects.create(
-            username=fake_name1, email=fake_email1, password=fake_password)
+        user = get_mock_user()
         user_id = to_global_id(UserNode._meta.name, user.pk)
 
         title = "fuga"
         content = "fuga fuga content"
+        data = post_article_mutation(user_id, title, content)
+        mutation = data['mutation']
+        expect = data['expect']
 
-        client = Client(schema)
-        mutation = post_article_mutation(user_id, title, content)
-        executed = client.execute(mutation)
+        result = post_query(mutation, login_as=True)
 
-        self.assertEqual(executed, {
-            'data': {
-                'postArticle': {
-                    'article': {
-                        'title': title,
-                        'content': content,
-                    }
-                }
-            }
-        })
+        self.assertEqual(result, expect)
