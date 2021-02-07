@@ -4,7 +4,7 @@ schema {
 }
 
 type ArticleNode implements Node {
-  author: UserNode!
+  author: MeNode!
   title: String!
   content: String!
   createdAt: DateTime!
@@ -37,6 +37,22 @@ type CreateUserPayload {
 }
 
 scalar DateTime
+
+type MeNode implements Node {
+  lastLogin: DateTime
+  username: String!
+  dateJoined: DateTime!
+  profile: ProfileNode
+  id: ID!
+  password: String!
+  isSuperuser: Boolean!
+  firstName: String!
+  lastName: String!
+  email: String!
+  isStaff: Boolean!
+  isActive: Boolean!
+  author(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection!
+}
 
 type Mutation {
   createUser(input: CreateUserInput!): CreateUserPayload
@@ -76,6 +92,7 @@ type Query {
   hello: String
   user(id: ID!): UserNode
   allUsers(offset: Int, before: String, after: String, first: Int, last: Int, username: String, profile: ID, dateJoined: DateTime, lastLogin: DateTime): UserNodeConnection
+  me(id: ID!): MeNode
   profile(id: ID!): ProfileNode
   article(id: ID!): ArticleNode
   allArticles(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection

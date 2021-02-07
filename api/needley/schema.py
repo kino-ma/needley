@@ -18,12 +18,25 @@ class UserNode(DjangoObjectType):
         fields = ['username', 'profile', 'date_joined', 'last_login']
         interfaces = (relay.Node, )
 
+
 class ProfileNode(DjangoObjectType):
     class Meta:
         model = Profile
         filter_fields = ['nickname', 'avator']
         fields = ['nickname', 'avator']
         interfaces = (relay.Node, )
+
+
+class UserType(DjangoObjectType):
+    class Meta:
+        model = User
+
+
+class Me(graphene.ObjectType):
+    user = graphene.Field(UserType)
+
+    def resolve_user(parent, info):
+        return info.context.user
 
 
 class ArticleNode(DjangoObjectType):
@@ -45,6 +58,7 @@ class Query(graphene.ObjectType):
 
     user = relay.Node.Field(UserNode)
     all_users = DjangoFilterConnectionField(UserNode)
+    me = graphene.Field(Me)
 
     profile = relay.Node.Field(ProfileNode)
 
@@ -72,11 +86,13 @@ class CreateUser(relay.ClientIDMutation):
 
         # name must be unique
         if User.objects.filter(username=username, email=email):
-            raise Exception("User with that name already exests: %s" % username)
+            raise Exception(
+                "User with that name already exests: %s" % username)
 
         user = User.objects.create_user(
             username=username, email=email, password=password)
-        profile = Profile.objects.create(user=user, nickname=nickname, avator=avator)
+        profile = Profile.objects.create(
+            user=user, nickname=nickname, avator=avator)
 
         login(info.context, user)
         print(f'logged in as {user.profile}')
@@ -108,7 +124,6 @@ class PostArticle(relay.ClientIDMutation):
             author=user, title=title, content=content)
 
         return PostArticle(article=article)
-
 
 
 class Mutation(graphene.ObjectType):
