@@ -23,10 +23,10 @@ def post_query(query, login_as=None):
 
 
 def user_query_and_result(user):
-    user_global_id = to_global_id(User, user.pk)
+    user_global_id = to_global_id("UserNode", user.pk)
     query = f'''
     {{
-        user(id: {user_global_id}) {{
+        user(id: "{user_global_id}") {{
             username
             profile {{
                 nickname
@@ -37,18 +37,23 @@ def user_query_and_result(user):
     '''
     result = user_result_from(user)
 
-    return (query, result)
+    return {
+        'query': query,
+        'expect': result
+    }
 
 
 def user_result_from(user):
     if type(user).__name__ == "UserData":
         user = user.as_user()
     return {
-        'user': {
-            'username': user.username,
-            'profile': {
-                'nickname': user.profile.nickname,
-                'avator': user.profile.avator,
+        'data': {
+            'user': {
+                'username': user.username,
+                'profile': {
+                    'nickname': user.profile.nickname,
+                    'avator': user.profile.avator,
+                }
             }
         }
     }
@@ -60,7 +65,10 @@ def all_users_query(**filter):
         filter_query = '(' + \
             ', '.join([k + f':"{v}"' for (k, v) in filter.items()]) + ')'
 
-    all_users = User.objects.all(**filter)
+    if filter:
+        all_users = User.objects.filter(**filter)
+    else:
+        all_users = User.objects.all()
 
     query = f'''
         {{
@@ -83,7 +91,7 @@ def all_users_query(**filter):
             'allUsers': {
                 'edges': [
                     {
-                        'node': user_result_from(user)['user']
+                        'node': user_result_from(user)['data']['user']
                     }
                     for user in all_users
                 ]
@@ -99,11 +107,19 @@ def all_users_query(**filter):
 
 class GetUserTests(TestCase):
     def test_all_users(self):
-        self.maxDiff = None
         # create 3 users before testing
         for count in range(3):
             get_mock_user()
         data = all_users_query()
+        query = data['query']
+        expect = data['expect']
+        result = post_query(query)
+
+        self.assertEqual(result, expect)
+
+    def test_an_user(self):
+        user = get_mock_user()
+        data = user_query_and_result(user)
         query = data['query']
         expect = data['expect']
         result = post_query(query)
@@ -151,6 +167,7 @@ def create_user_mutation(name, email, password, nickname, avator=None):
         'expect': expect
     }
 
+
 @dataclass
 class UserData:
     username: str
@@ -158,7 +175,6 @@ class UserData:
     password: str
     nickname: str = "hoge-nick"
     avator: str = None
-    idx = 0
 
     def as_user(self):
         # get_or_create returns Tuple (obj, created)
@@ -168,12 +184,13 @@ class UserData:
             user=user, nickname=self.username, avator=self.avator)
         return user
 
+
 def get_mock_user(data_only=False):
-    username = "test" + str(UserData.idx)
+    idx = User.objects.count()
+    username = "test" + str(idx)
     email = username + "@example.com"
     password = "password"
     nickname = username + " (nick)"
-    UserData.idx += 1
 
     user_data = UserData(username=username, email=email, password=password)
 
@@ -237,8 +254,6 @@ def post_article_mutation(user_id, title, content):
         'mutation': mutation,
         'expect': expect
     }
-
-
 
 
 class PostArticleTests(TestCase):
