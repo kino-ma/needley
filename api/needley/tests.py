@@ -5,8 +5,110 @@ from django.test import Client, TestCase
 from graphene.test import Client as GraphQLClient
 from graphql_relay import to_global_id
 
-from .models import User, Article
+from .models import User, Article, Profile
 from .schema import schema, UserNode
+
+
+def post_query(query, login_as=None):
+    client = Client()
+    if login_as is True:
+        user = get_mock_user()
+        client.force_login(user)
+    elif login_as:
+        client.force_login(login_as)
+
+    response = client.post('/graphql', {'query': query})
+    parsed = json.loads(response.content)
+    return parsed
+
+
+def user_query_and_result(user):
+    user_global_id = to_global_id(User, user.pk)
+    query = f'''
+    {{
+        user(id: {user_global_id}) {{
+            username
+            profile {{
+                nickname
+                avator
+            }}
+        }}
+    }}
+    '''
+    result = user_result_from(user)
+
+    return (query, result)
+
+
+def user_result_from(user):
+    if type(user).__name__ == "UserData":
+        user = user.as_user()
+    return {
+        'user': {
+            'username': user.username,
+            'profile': {
+                'nickname': user.profile.nickname,
+                'avator': user.profile.avator,
+            }
+        }
+    }
+
+
+def all_users_query(**filter):
+    filter_query = ''
+    if filter:
+        filter_query = '(' + \
+            ', '.join([k + f':"{v}"' for (k, v) in filter.items()]) + ')'
+
+    all_users = User.objects.all(**filter)
+
+    query = f'''
+        {{
+            allUsers{filter_query} {{
+                edges {{
+                    node {{
+                        username
+                        profile {{
+                            nickname
+                            avator
+                        }}
+                    }}
+                }}
+            }}
+        }}
+    '''
+
+    expect = {
+        'data': {
+            'allUsers': {
+                'edges': [
+                    {
+                        'node': user_result_from(user)['user']
+                    }
+                    for user in all_users
+                ]
+            }
+        }
+    }
+
+    return {
+        'query': query,
+        'expect': expect
+    }
+
+
+class GetUserTests(TestCase):
+    def test_all_users(self):
+        self.maxDiff = None
+        # create 3 users before testing
+        for count in range(3):
+            get_mock_user()
+        data = all_users_query()
+        query = data['query']
+        expect = data['expect']
+        result = post_query(query)
+
+        self.assertEqual(result, expect)
 
 
 def create_user_mutation(name, email, password, nickname, avator=None):
@@ -58,6 +160,14 @@ class UserData:
     avator: str = None
     idx = 0
 
+    def as_user(self):
+        # get_or_create returns Tuple (obj, created)
+        user = User.objects.get_or_create(
+            username=self.username, email=self.email, password=self.password)[0]
+        Profile.objects.get_or_create(
+            user=user, nickname=self.username, avator=self.avator)
+        return user
+
 def get_mock_user(data_only=False):
     username = "test" + str(UserData.idx)
     email = username + "@example.com"
@@ -65,22 +175,12 @@ def get_mock_user(data_only=False):
     nickname = username + " (nick)"
     UserData.idx += 1
 
+    user_data = UserData(username=username, email=email, password=password)
+
     if data_only:
-        return UserData(username=username, email=email, password=password)
+        return user_data
     else:
-        return User.objects.create_user(username=username, email=email, password=password)
-
-def post_query(query, login_as=None):
-    client = Client()
-    if login_as is True:
-        user = get_mock_user()
-        client.force_login(user)
-    elif login_as:
-        client.force_login(login_as)
-
-    response = client.post('/graphql', {'query': query})
-    parsed = json.loads(response.content)
-    return parsed
+        return user_data.as_user()
 
 
 class CreateUserTests(TestCase):
