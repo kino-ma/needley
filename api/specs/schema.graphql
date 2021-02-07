@@ -4,12 +4,12 @@ schema {
 }
 
 type ArticleNode implements Node {
-  id: ID!
   author: UserNode!
   title: String!
   content: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+  id: ID!
 }
 
 type ArticleNodeConnection {
@@ -67,10 +67,9 @@ type PostArticlePayload {
 }
 
 type ProfileNode implements Node {
-  id: ID!
-  user: UserNode!
   nickname: String!
   avator: String
+  id: ID!
 }
 
 type Query {
@@ -83,19 +82,11 @@ type Query {
 }
 
 type UserNode implements Node {
-  id: ID!
-  password: String!
   lastLogin: DateTime
-  isSuperuser: Boolean!
   username: String!
-  firstName: String!
-  lastName: String!
-  email: String!
-  isStaff: Boolean!
-  isActive: Boolean!
   dateJoined: DateTime!
   profile: ProfileNode
-  author(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection!
+  id: ID!
 }
 
 type UserNodeConnection {
