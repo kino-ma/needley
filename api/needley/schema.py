@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -100,6 +100,25 @@ class CreateUser(relay.ClientIDMutation):
         return CreateUser(user=user)
 
 
+class Login(relay.ClientIDMutation):
+    class Input:
+        username = graphene.String(required=True)
+        password = graphene.String(required=True)
+
+    me = graphene.Field(UserNode)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **input):
+        user = authenticate(info.context, username=input.get(
+            'username'), password=input.get('password'))
+        if user is not None:
+            login(info.context, user)
+            print('logged in as %s' % user.username)
+            return Login(me=user)
+        else:
+            raise Exception('invalid credentials')
+
+
 class PostArticle(relay.ClientIDMutation):
     class Input:
         user_id = graphene.ID(required=True)
@@ -128,6 +147,7 @@ class PostArticle(relay.ClientIDMutation):
 
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
+    login = Login.Field()
     post_article = PostArticle.Field()
 
 
