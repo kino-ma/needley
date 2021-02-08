@@ -257,8 +257,6 @@ def post_article_mutation(title, content):
 
 class PostArticleTests(TestCase):
     def test_post_article(self):
-        user = get_mock_user()
-
         title = "fuga"
         content = "fuga fuga content"
         data = post_article_mutation(title, content)
