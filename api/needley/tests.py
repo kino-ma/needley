@@ -224,11 +224,10 @@ class CreateUserTests(TestCase):
         self.assertEqual(result, expect)
 
 
-def post_article_mutation(user_id, title, content):
+def post_article_mutation(title, content):
     mutation = f'''
         mutation {{
             postArticle(input: {{
-                userId:"{user_id}",
                 title:"{title}",
                 content:"{content}",
             }}) {{
@@ -259,11 +258,10 @@ def post_article_mutation(user_id, title, content):
 class PostArticleTests(TestCase):
     def test_post_article(self):
         user = get_mock_user()
-        user_id = to_global_id(UserNode._meta.name, user.pk)
 
         title = "fuga"
         content = "fuga fuga content"
-        data = post_article_mutation(user_id, title, content)
+        data = post_article_mutation(title, content)
         mutation = data['mutation']
         expect = data['expect']
 
