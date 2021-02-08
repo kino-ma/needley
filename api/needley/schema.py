@@ -68,21 +68,21 @@ class Query(graphene.ObjectType):
 
 class CreateUser(relay.ClientIDMutation):
     class Input:
-        user_name = graphene.String(required=True)
-        user_email = graphene.String(required=True)
-        user_password = graphene.String(required=True)
-        user_nickname = graphene.String(required=True)
-        user_avator = graphene.String()
+        username = graphene.String(required=True)
+        email = graphene.String(required=True)
+        password = graphene.String(required=True)
+        nickname = graphene.String(required=True)
+        avator = graphene.String()
 
     user = graphene.Field(UserNode)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
-        username = input.get('user_name')
-        email = input.get('user_email')
-        password = input.get('user_password')
-        nickname = input.get('user_nickname')
-        avator = input.get('user_avator')
+        username = input.get('username')
+        email = input.get('email')
+        password = input.get('password')
+        nickname = input.get('nickname')
+        avator = input.get('avator')
 
         # name must be unique
         if User.objects.filter(username=username, email=email):
@@ -122,8 +122,8 @@ class Login(relay.ClientIDMutation):
 class PostArticle(relay.ClientIDMutation):
     class Input:
         user_id = graphene.ID(required=True)
-        article_title = graphene.String(required=True)
-        article_content = graphene.String(required=True)
+        title = graphene.String(required=True)
+        content = graphene.String(required=True)
 
     article = graphene.Field(ArticleNode)
 
@@ -133,8 +133,8 @@ class PostArticle(relay.ClientIDMutation):
             raise Exception('Please login before posting your article.')
 
         user_id = input.get('user_id')
-        title = input.get('article_title')
-        content = input.get('article_content')
+        title = input.get('title')
+        content = input.get('content')
 
         user_pk = int(from_global_id(user_id)[1])
         user = get_object_or_404(User, pk=user_pk)

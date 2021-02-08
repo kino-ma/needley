@@ -131,10 +131,10 @@ def create_user_mutation(name, email, password, nickname, avator=None):
     mutation = f'''
         mutation {{
             createUser(input: {{
-                userName:"{name}"
-                userEmail:"{email}"
-                userPassword:"{password}"
-                userNickname:"{nickname}"
+                username:"{name}"
+                email:"{email}"
+                password:"{password}"
+                nickname:"{nickname}"
                 { 'userAvator:"' + avator + '"' if avator else "" }
             }}) {{
                 user {{
@@ -229,8 +229,8 @@ def post_article_mutation(user_id, title, content):
         mutation {{
             postArticle(input: {{
                 userId:"{user_id}",
-                articleTitle:"{title}",
-                articleContent:"{content}",
+                title:"{title}",
+                content:"{content}",
             }}) {{
                 article {{
                     title
