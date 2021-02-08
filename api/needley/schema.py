@@ -121,7 +121,6 @@ class Login(relay.ClientIDMutation):
 
 class PostArticle(relay.ClientIDMutation):
     class Input:
-        user_id = graphene.ID(required=True)
         title = graphene.String(required=True)
         content = graphene.String(required=True)
 
@@ -132,12 +131,9 @@ class PostArticle(relay.ClientIDMutation):
         if not info.context.user.is_authenticated:
             raise Exception('Please login before posting your article.')
 
-        user_id = input.get('user_id')
         title = input.get('title')
         content = input.get('content')
-
-        user_pk = int(from_global_id(user_id)[1])
-        user = get_object_or_404(User, pk=user_pk)
+        user = info.context.user
 
         article = Article.objects.create(
             author=user, title=title, content=content)
