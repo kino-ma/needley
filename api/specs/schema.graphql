@@ -4,7 +4,7 @@ schema {
 }
 
 type ArticleNode implements Node {
-  author: MeNode!
+  author: UserType!
   title: String!
   content: String!
   createdAt: DateTime!
@@ -23,11 +23,11 @@ type ArticleNodeEdge {
 }
 
 input CreateUserInput {
-  userName: String!
-  userEmail: String!
-  userPassword: String!
-  userNickname: String!
-  userAvator: String
+  username: String!
+  email: String!
+  password: String!
+  nickname: String!
+  avator: String
   clientMutationId: String
 }
 
@@ -38,24 +38,24 @@ type CreateUserPayload {
 
 scalar DateTime
 
-type MeNode implements Node {
-  lastLogin: DateTime
+input LoginInput {
   username: String!
-  dateJoined: DateTime!
-  profile: ProfileNode
-  id: ID!
   password: String!
-  isSuperuser: Boolean!
-  firstName: String!
-  lastName: String!
-  email: String!
-  isStaff: Boolean!
-  isActive: Boolean!
-  author(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection!
+  clientMutationId: String
+}
+
+type LoginPayload {
+  me: UserNode
+  clientMutationId: String
+}
+
+type Me {
+  user: UserType
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): CreateUserPayload
+  login(input: LoginInput!): LoginPayload
   postArticle(input: PostArticleInput!): PostArticlePayload
 }
 
@@ -72,8 +72,8 @@ type PageInfo {
 
 input PostArticleInput {
   userId: ID!
-  articleTitle: String!
-  articleContent: String!
+  title: String!
+  content: String!
   clientMutationId: String
 }
 
@@ -92,7 +92,7 @@ type Query {
   hello: String
   user(id: ID!): UserNode
   allUsers(offset: Int, before: String, after: String, first: Int, last: Int, username: String, profile: ID, dateJoined: DateTime, lastLogin: DateTime): UserNodeConnection
-  me(id: ID!): MeNode
+  me: Me
   profile(id: ID!): ProfileNode
   article(id: ID!): ArticleNode
   allArticles(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection
@@ -114,4 +114,20 @@ type UserNodeConnection {
 type UserNodeEdge {
   node: UserNode
   cursor: String!
+}
+
+type UserType {
+  lastLogin: DateTime
+  username: String!
+  dateJoined: DateTime!
+  profile: ProfileNode
+  id: ID!
+  password: String!
+  isSuperuser: Boolean!
+  firstName: String!
+  lastName: String!
+  email: String!
+  isStaff: Boolean!
+  isActive: Boolean!
+  author(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection!
 }
