@@ -71,7 +71,6 @@ type PageInfo {
 }
 
 input PostArticleInput {
-  userId: ID!
   title: String!
   content: String!
   clientMutationId: String
@@ -89,7 +88,6 @@ type ProfileNode implements Node {
 }
 
 type Query {
-  hello: String
   user(id: ID!): UserNode
   allUsers(offset: Int, before: String, after: String, first: Int, last: Int, username: String, profile: ID, dateJoined: DateTime, lastLogin: DateTime): UserNodeConnection
   me: Me

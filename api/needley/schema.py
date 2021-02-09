@@ -54,8 +54,6 @@ class ArticleNode(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
-    hello = graphene.String(default_value="Hi!")
-
     user = relay.Node.Field(UserNode)
     all_users = DjangoFilterConnectionField(UserNode)
     me = graphene.Field(Me)
