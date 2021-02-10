@@ -30,12 +30,6 @@ class MeNode(UserNode):
         fields = UserMeta.fields + ['email']
         interfaces = ()
 
-    # @classmethod
-    def resolve_me(parent, info):
-        print("get_node")
-        print("me:", info.context.user)
-        return UserNode.get_node(info, info.context.user.id)
-
 
 class ProfileNode(DjangoObjectType):
     class Meta:
@@ -62,7 +56,7 @@ class ArticleNode(DjangoObjectType):
 class Query(graphene.ObjectType):
     user = relay.Node.Field(UserNode)
     all_users = DjangoFilterConnectionField(UserNode)
-    me = graphene.Field(UserNode)
+    me = graphene.Field(MeNode)
 
     profile = relay.Node.Field(ProfileNode)
 
@@ -70,7 +64,10 @@ class Query(graphene.ObjectType):
     all_articles = DjangoFilterConnectionField(ArticleNode)
 
     def resolve_me(parent, info):
-        return UserNode.get_node(info, info.context.user.id)
+        user = info.context.user
+        if not user.is_authenticated:
+            raise Exception('You are not authorized.')
+        return MeNode.get_node(info, info.context.user.id)
 
 
 class CreateUser(relay.ClientIDMutation):

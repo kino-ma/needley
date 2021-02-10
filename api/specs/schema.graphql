@@ -94,7 +94,7 @@ type ProfileNode implements Node {
 type Query {
   user(id: ID!): UserNode
   allUsers(offset: Int, before: String, after: String, first: Int, last: Int, username: String, profile: ID, dateJoined: DateTime, lastLogin: DateTime): UserNodeConnection
-  me: UserNode
+  me: MeNode
   profile(id: ID!): ProfileNode
   article(id: ID!): ArticleNode
   allArticles(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection
