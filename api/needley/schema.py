@@ -28,11 +28,6 @@ class ProfileNode(DjangoObjectType):
         interfaces = (relay.Node, )
 
 
-class UserType(DjangoObjectType):
-    class Meta:
-        model = User
-
-
 class Me(DjangoObjectType):
     class Meta:
         model = User
