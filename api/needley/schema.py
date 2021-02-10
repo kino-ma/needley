@@ -24,11 +24,27 @@ class UserNode(DjangoObjectType):
         pass
 
 
-class MeNode(UserNode):
+class MeUserNode(UserNode):
     class Meta(UserMeta):
         filter_fields = []
         fields = UserMeta.fields + ['email']
         interfaces = ()
+
+
+class Me(graphene.ObjectType):
+    user = graphene.Field(UserNode)
+    ok = graphene.Boolean()
+
+    def resolve_user(parent, info):
+        print("resolve_user")
+        user = info.context.user
+        if not user.is_authenticated:
+            raise Exception('You are not authorized.')
+        return MeUserNode.get_node(info, info.context.user.id)
+
+    def resolve_ok(parent, info):
+        print("resolve_ok")
+        return info.context.user.is_authenticated
 
 
 class ProfileNode(DjangoObjectType):
@@ -56,7 +72,7 @@ class ArticleNode(DjangoObjectType):
 class Query(graphene.ObjectType):
     user = relay.Node.Field(UserNode)
     all_users = DjangoFilterConnectionField(UserNode)
-    me = graphene.Field(MeNode)
+    me = graphene.Field(Me)
 
     profile = relay.Node.Field(ProfileNode)
 
@@ -64,10 +80,7 @@ class Query(graphene.ObjectType):
     all_articles = DjangoFilterConnectionField(ArticleNode)
 
     def resolve_me(parent, info):
-        user = info.context.user
-        if not user.is_authenticated:
-            raise Exception('You are not authorized.')
-        return MeNode.get_node(info, info.context.user.id)
+        return Me()
 
 
 class CreateUser(relay.ClientIDMutation):
