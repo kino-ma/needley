@@ -4,6 +4,7 @@ from django.contrib.auth import login, authenticate
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django.types import DjangoObjectTypeOptions
 from graphql_relay import from_global_id
 
 import graphene
@@ -32,10 +33,12 @@ class UserType(DjangoObjectType):
         model = User
 
 
-class Me(graphene.ObjectType):
-    user = graphene.Field(UserType)
+class Me(DjangoObjectType):
+    class Meta:
+        model = User
 
-    def resolve_user(parent, info):
+    @classmethod
+    def get_node(cls, info, id):
         return info.context.user
 
 

@@ -4,7 +4,7 @@ schema {
 }
 
 type ArticleNode implements Node {
-  author: UserType!
+  author: Me!
   title: String!
   content: String!
   createdAt: DateTime!
@@ -50,7 +50,19 @@ type LoginPayload {
 }
 
 type Me {
-  user: UserType
+  lastLogin: DateTime
+  username: String!
+  dateJoined: DateTime!
+  profile: ProfileNode
+  id: ID!
+  password: String!
+  isSuperuser: Boolean!
+  firstName: String!
+  lastName: String!
+  email: String!
+  isStaff: Boolean!
+  isActive: Boolean!
+  author(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection!
 }
 
 type Mutation {
@@ -112,20 +124,4 @@ type UserNodeConnection {
 type UserNodeEdge {
   node: UserNode
   cursor: String!
-}
-
-type UserType {
-  lastLogin: DateTime
-  username: String!
-  dateJoined: DateTime!
-  profile: ProfileNode
-  id: ID!
-  password: String!
-  isSuperuser: Boolean!
-  firstName: String!
-  lastName: String!
-  email: String!
-  isStaff: Boolean!
-  isActive: Boolean!
-  author(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection!
 }
