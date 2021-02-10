@@ -12,12 +12,29 @@ import graphene
 from .models import Profile, Article
 
 
+class UserMeta:
+    model = User
+    filter_fields = ['username', 'profile', 'date_joined', 'last_login']
+    fields = ['username', 'profile', 'date_joined', 'last_login']
+    interfaces = (relay.Node, )
+
+
 class UserNode(DjangoObjectType):
-    class Meta:
-        model = User
-        filter_fields = ['username', 'profile', 'date_joined', 'last_login']
-        fields = ['username', 'profile', 'date_joined', 'last_login']
-        interfaces = (relay.Node, )
+    class Meta(UserMeta):
+        pass
+
+
+class MeNode(UserNode):
+    class Meta(UserMeta):
+        filter_fields = []
+        fields = UserMeta.fields + ['email']
+        interfaces = ()
+
+    # @classmethod
+    def resolve_me(parent, info):
+        print("get_node")
+        print("me:", info.context.user)
+        return UserNode.get_node(info, info.context.user.id)
 
 
 class ProfileNode(DjangoObjectType):
@@ -26,15 +43,6 @@ class ProfileNode(DjangoObjectType):
         filter_fields = ['nickname', 'avator']
         fields = ['nickname', 'avator']
         interfaces = (relay.Node, )
-
-
-class Me(DjangoObjectType):
-    class Meta:
-        model = User
-
-    @classmethod
-    def get_node(cls, info, id):
-        return info.context.user
 
 
 class ArticleNode(DjangoObjectType):
@@ -54,12 +62,15 @@ class ArticleNode(DjangoObjectType):
 class Query(graphene.ObjectType):
     user = relay.Node.Field(UserNode)
     all_users = DjangoFilterConnectionField(UserNode)
-    me = graphene.Field(Me)
+    me = graphene.Field(UserNode)
 
     profile = relay.Node.Field(ProfileNode)
 
     article = relay.Node.Field(ArticleNode)
     all_articles = DjangoFilterConnectionField(ArticleNode)
+
+    def resolve_me(parent, info):
+        return UserNode.get_node(info, info.context.user.id)
 
 
 class CreateUser(relay.ClientIDMutation):

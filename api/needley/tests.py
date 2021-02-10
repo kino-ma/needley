@@ -131,9 +131,7 @@ class GetUserTests(TestCase):
         query = '''
         {
             me {
-                user {
-                    username
-                }
+                username
             }
         }
         '''
@@ -141,9 +139,7 @@ class GetUserTests(TestCase):
         expect = {
             'data': {
                 'me': {
-                    'user': {
-                        'username': user.username
-                    }
+                    'username': user.username
                 }
             }
         }
