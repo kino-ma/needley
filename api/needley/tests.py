@@ -126,6 +126,32 @@ class GetUserTests(TestCase):
 
         self.assertEqual(result, expect)
 
+    def test_me(self):
+        user = get_mock_user()
+        query = '''
+        {
+            me {
+                user {
+                    username
+                }
+            }
+        }
+        '''
+
+        expect = {
+            'data': {
+                'me': {
+                    'user': {
+                        'username': user.username
+                    }
+                }
+            }
+        }
+
+        result = post_query(query, login_as=user)
+
+        self.assertEqual(result, expect)
+
 
 def create_user_mutation(name, email, password, nickname, avator=None):
     mutation = f'''
