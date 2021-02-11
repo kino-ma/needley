@@ -39,14 +39,12 @@ class Me(graphene.ObjectType):
     ok = graphene.Boolean()
 
     def resolve_user(parent, info):
-        print("resolve_user")
         user = info.context.user
         if not user.is_authenticated:
             raise Exception('You are not authorized.')
         return MeUserNode.get_node(info, info.context.user.id)
 
     def resolve_ok(parent, info):
-        print("resolve_ok")
         return info.context.user.is_authenticated
 
 
