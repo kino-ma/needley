@@ -59,20 +59,20 @@ def user_result_from(user):
     }
 
 
-def all_users_query(**filter):
-    filter_query = ''
-    if filter:
-        filter_query = '(' + \
-            ', '.join([k + f':"{v}"' for (k, v) in filter.items()]) + ')'
+def all_users_query(query_filter=None, search_filter=None):
+    filter = ''
+    if query_filter:
+        filter = '(' + \
+            ', '.join([k + f':"{v}"' for (k, v) in query_filter.items()]) + ')'
 
-    if filter:
-        all_users = User.objects.filter(**filter)
+    if search_filter:
+        all_users = User.objects.filter(**search_filter)
     else:
         all_users = User.objects.all()
 
     query = f'''
         {{
-            allUsers{filter_query} {{
+            allUsers{filter} {{
                 edges {{
                     node {{
                         username
@@ -109,8 +109,38 @@ class GetUserTests(TestCase):
     def test_all_users(self):
         # create 3 users before testing
         for count in range(3):
-            get_mock_user()
+            created = get_mock_user()
         data = all_users_query()
+        query = data['query']
+        expect = data['expect']
+        result = post_query(query)
+
+        self.assertEqual(result, expect)
+
+    def test_filter_username(self):
+        user = None
+        for count in range(2):
+            user = get_mock_user()
+
+        query_filter = {'username': user.username}
+        data = all_users_query(query_filter=query_filter,
+                               search_filter=query_filter)
+        query = data['query']
+        expect = data['expect']
+        result = post_query(query)
+
+        self.assertEqual(result, expect)
+
+    def test_filter_nickname(self):
+        user = None
+        for count in range(2):
+            user = get_mock_user()
+
+        filter_word = user.profile.nickname[1:-1]
+        query_filter = {'profile_Nickname_Icontains': filter_word}
+        search_filter = {'profile__nickname__icontains': filter_word}
+        data = all_users_query(query_filter=query_filter,
+                               search_filter=search_filter)
         query = data['query']
         expect = data['expect']
         result = post_query(query)
