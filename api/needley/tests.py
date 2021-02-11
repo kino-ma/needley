@@ -1,7 +1,11 @@
 import json
+import datetime
 from dataclasses import dataclass
+from unittest.signals import removeResult
 
 from django.test import Client, TestCase
+from django.utils import timezone
+import graphene
 from graphene.test import Client as GraphQLClient
 from graphql_relay import to_global_id
 
@@ -63,7 +67,8 @@ def all_users_query(query_filter=None, search_filter=None):
     filter = ''
     if query_filter:
         filter = '(' + \
-            ', '.join([k + f':"{v}"' for (k, v) in query_filter.items()]) + ')'
+            ', '.join([k + f':{json.dumps(v)}' for (k, v)
+                       in query_filter.items()]) + ')'
 
     if search_filter:
         all_users = User.objects.filter(**search_filter)
@@ -117,7 +122,7 @@ class GetUserTests(TestCase):
 
         self.assertEqual(result, expect)
 
-    def test_filter_username(self):
+    def test_filter_user_username(self):
         user = None
         for count in range(2):
             user = get_mock_user()
@@ -131,9 +136,9 @@ class GetUserTests(TestCase):
 
         self.assertEqual(result, expect)
 
-    def test_filter_nickname(self):
+    def test_filter_user_nickname(self):
         user = None
-        for count in range(2):
+        for count in range(3):
             user = get_mock_user()
 
         filter_word = user.profile.nickname[1:-1]
@@ -313,6 +318,61 @@ def post_article_mutation(title, content):
     }
 
 
+def article_result_from(article):
+    return {
+        'data': {
+            'article': {
+                'title': article.title,
+                'content': article.content
+            }
+        }
+    }
+
+
+def all_articles_query(query_filter=None, search_filter=None):
+    filter = ''
+    if query_filter:
+        filter = '(' + \
+            ', '.join([k + f':{json.dumps(v)}' for (k, v)
+                       in query_filter.items()]) + ')'
+
+    if search_filter:
+        all_articles = Article.objects.filter(**search_filter)
+    else:
+        all_articles = Article.objects.all()
+
+    query = f'''
+        {{
+            allArticles{filter} {{
+                edges {{
+                    node {{
+                        title
+                        content
+                    }}
+                }}
+            }}
+        }}
+    '''
+
+    expect = {
+        'data': {
+            'allArticles': {
+                'edges': [
+                    {
+                        'node': article_result_from(article)['data']['article']
+                    }
+                    for article in all_articles
+                ]
+            }
+        }
+    }
+
+    return {
+        'query': query,
+        'expect': expect
+    }
+
+
 class PostArticleTests(TestCase):
     def test_post_article(self):
         title = "fuga"
@@ -322,5 +382,113 @@ class PostArticleTests(TestCase):
         expect = data['expect']
 
         result = post_query(mutation, login_as=True)
+
+        self.assertEqual(result, expect)
+
+    def test_all_articles(self):
+        author = get_mock_user()
+        titles = ['test title 1', 'test title 2', 'title 3']
+        contents = ['test content 1', 'test content 2', 'content 3']
+
+        for (title, content) in zip(titles, contents):
+            Article.objects.create(title=title, content=content, author=author)
+
+        data = all_articles_query()
+        query = data['query']
+        expect = data['expect']
+
+        result = post_query(query)
+
+        self.assertEqual(result, expect)
+
+    def test_filter_articles_title(self):
+        author = get_mock_user()
+        titles = ['test title 1', 'test title 2', 'title 3']
+        contents = ['test content 1', 'content 2', 'content 3']
+
+        for (title, content) in zip(titles, contents):
+            Article.objects.create(title=title, content=content, author=author)
+
+        filter_word = 'test'
+        query_filter = {'title_Icontains': filter_word}
+        search_filter = {'title__icontains': filter_word}
+
+        data = all_articles_query(
+            query_filter=query_filter, search_filter=search_filter)
+        query = data['query']
+        expect = data['expect']
+
+        result = post_query(query)
+
+        self.assertEqual(result, expect)
+
+    def test_filter_articles_content(self):
+        author = get_mock_user()
+        titles = ['test title 1', 'test title 2', 'title 3']
+        contents = ['test content 1', 'content 2', 'content 3']
+
+        for (title, content) in zip(titles, contents):
+            Article.objects.create(title=title, content=content, author=author)
+
+        filter_word = 'test'
+        query_filter = {'content_Icontains': filter_word}
+        search_filter = {'content__icontains': filter_word}
+
+        data = all_articles_query(
+            query_filter=query_filter, search_filter=search_filter)
+        query = data['query']
+        expect = data['expect']
+
+        result = post_query(query)
+
+        self.assertEqual(result, expect)
+
+    def test_filter_articles_created_at(self):
+        author = get_mock_user()
+        titles = ['test title 1', 'test title 2', 'title 3']
+        contents = ['test content 1', 'content 2', 'content 3']
+        today = timezone.now()
+        yesterday = timezone.now() - datetime.timedelta(days=1)
+        dates = [today, today, yesterday]
+
+        for (title, content, date) in zip(titles, contents, dates):
+            Article.objects.create(
+                title=title, content=content, author=author, updated_at=date)
+
+        filter_date = graphene.DateTime.serialize(yesterday)
+        query_filter = {'createdAt_Lt': filter_date}
+        search_filter = {'created_at__lt': filter_date}
+
+        data = all_articles_query(
+            query_filter=query_filter, search_filter=search_filter)
+        query = data['query']
+        expect = data['expect']
+
+        result = post_query(query)
+
+        self.assertEqual(result, expect)
+
+    def test_filter_articles_updated_at(self):
+        author = get_mock_user()
+        titles = ['test title 1', 'test title 2', 'title 3']
+        contents = ['test content 1', 'content 2', 'content 3']
+        today = timezone.now()
+        yesterday = timezone.now() - datetime.timedelta(days=1)
+        dates = [today, today, yesterday]
+
+        for (title, content, date) in zip(titles, contents, dates):
+            Article.objects.create(
+                title=title, content=content, author=author, updated_at=date)
+
+        filter_date = graphene.DateTime.serialize(yesterday)
+        query_filter = {'updatedAt_Lt': filter_date}
+        search_filter = {'updated_at__lt': filter_date}
+
+        data = all_articles_query(
+            query_filter=query_filter, search_filter=search_filter)
+        query = data['query']
+        expect = data['expect']
+
+        result = post_query(query)
 
         self.assertEqual(result, expect)
