@@ -14,7 +14,10 @@ from .models import Profile, Article
 
 class UserMeta:
     model = User
-    filter_fields = ['username', 'profile', 'date_joined', 'last_login']
+    filter_fields = {
+        'username': ['exact', 'icontains'],
+        'profile__nickname': ['exact', 'icontains'],
+    }
     fields = ['username', 'profile', 'date_joined', 'last_login']
     interfaces = (relay.Node, )
 
