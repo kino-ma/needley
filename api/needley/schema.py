@@ -1,6 +1,5 @@
 from icecream import ic
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User
 from django.contrib.auth import get_user, login, authenticate, get_user_model
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
