@@ -1,3 +1,4 @@
+from icecream import ic
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
@@ -107,15 +108,15 @@ class CreateUser(relay.ClientIDMutation):
             raise Exception(
                 "User with that name already exests: %s" % username)
 
-        user = User.objects.create_user(
+        login_user = User.objects.create_user(
             username=username, email=email, password=password)
         profile = Profile.objects.create(
-            user=user, nickname=nickname, avator=avator)
+            user=login_user, nickname=nickname, avator=avator)
 
-        login(info.context, user)
-        print(f'logged in as {user.profile}')
+        login(info.context, login_user)
+        ic(login_user)
 
-        return CreateUser(user=user)
+        return CreateUser(user=login_user)
 
 
 class Login(relay.ClientIDMutation):
@@ -127,12 +128,12 @@ class Login(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
-        user = authenticate(info.context, username=input.get(
+        login_user = authenticate(info.context, username=input.get(
             'username'), password=input.get('password'))
-        if user is not None:
-            login(info.context, user)
-            print('logged in as %s' % user.username)
-            return Login(me=user)
+        if login_user is not None:
+            login(info.context, login_user)
+            ic(login_user)
+            return Login(login_user)
         else:
             raise Exception('invalid credentials')
 
