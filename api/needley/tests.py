@@ -5,12 +5,15 @@ from unittest.signals import removeResult
 
 from django.test import Client, TestCase
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 import graphene
 from graphene.test import Client as GraphQLClient
 from graphql_relay import to_global_id
 
-from .models import User, Article, Profile
+from .models import Article
 from .schema import schema, UserNode
+
+User = get_user_model()
 
 
 def post_query(query, login_as=None):
@@ -32,10 +35,8 @@ def user_query_and_result(user):
     {{
         user(id: "{user_global_id}") {{
             username
-            profile {{
-                nickname
-                avator
-            }}
+            nickname
+            avatar
         }}
     }}
     '''
@@ -54,10 +55,8 @@ def user_result_from(user):
         'data': {
             'user': {
                 'username': user.username,
-                'profile': {
-                    'nickname': user.profile.nickname,
-                    'avator': user.profile.avator,
-                }
+                'nickname': user.nickname,
+                'avatar': user.avatar,
             }
         }
     }
@@ -81,10 +80,8 @@ def all_users_query(query_filter=None, search_filter=None):
                 edges {{
                     node {{
                         username
-                        profile {{
-                            nickname
-                            avator
-                        }}
+                        nickname
+                        avatar
                     }}
                 }}
             }}
@@ -141,9 +138,9 @@ class GetUserTests(TestCase):
         for count in range(3):
             user = get_mock_user()
 
-        filter_word = user.profile.nickname[1:-1]
-        query_filter = {'profile_Nickname_Icontains': filter_word}
-        search_filter = {'profile__nickname__icontains': filter_word}
+        filter_word = user.nickname[1:-1]
+        query_filter = {'nickname_Icontains': filter_word}
+        search_filter = {'nickname__icontains': filter_word}
         data = all_users_query(query_filter=query_filter,
                                search_filter=search_filter)
         query = data['query']
@@ -190,7 +187,7 @@ class GetUserTests(TestCase):
         self.assertEqual(result, expect)
 
 
-def create_user_mutation(name, email, password, nickname, avator=None):
+def create_user_mutation(name, email, password, nickname, avatar=None):
     mutation = f'''
         mutation {{
             createUser(input: {{
@@ -198,14 +195,12 @@ def create_user_mutation(name, email, password, nickname, avator=None):
                 email:"{email}"
                 password:"{password}"
                 nickname:"{nickname}"
-                { 'userAvator:"' + avator + '"' if avator else "" }
+                { 'userAvator:"' + avatar + '"' if avatar else "" }
             }}) {{
                 user {{
                     username
-                    profile {{
-                        nickname
-                        avator
-                    }}
+                    nickname
+                    avatar
                 }}
             }}
         }}
@@ -216,10 +211,8 @@ def create_user_mutation(name, email, password, nickname, avator=None):
             'createUser': {
                 'user': {
                     'username': name,
-                    'profile': {
-                        'nickname': nickname,
-                        'avator': avator,
-                    }
+                    'nickname': nickname,
+                    'avatar': avatar,
                 }
             }
         }
@@ -237,14 +230,12 @@ class UserData:
     email: str
     password: str
     nickname: str = "hoge-nick"
-    avator: str = None
+    avatar: str = None
 
     def as_user(self):
         # get_or_create returns Tuple (obj, created)
         user = User.objects.get_or_create(
-            username=self.username, email=self.email, password=self.password)[0]
-        Profile.objects.get_or_create(
-            user=user, nickname=self.username, avator=self.avator)
+            username=self.username, email=self.email, password=self.password, nickname=self.username)[0]
         return user
 
 
@@ -253,7 +244,6 @@ def get_mock_user(data_only=False):
     username = "test" + str(idx)
     email = username + "@example.com"
     password = "password"
-    nickname = username + " (nick)"
 
     user_data = UserData(username=username, email=email, password=password)
 
@@ -268,18 +258,18 @@ class CreateUserTests(TestCase):
         u = get_mock_user(data_only=True)
 
         data = create_user_mutation(
-            u.username, u.email, u.password, u.nickname, avator=u.avator)
+            u.username, u.email, u.password, u.nickname, avatar=u.avatar)
         mutation = data['mutation']
         expect = data['expect']
         result = post_query(mutation)
 
         self.assertEqual(result, expect)
 
-    def test_create_user_without_avator(self):
+    def test_create_user_without_avatar(self):
         u = get_mock_user(data_only=True)
 
         data = create_user_mutation(
-            u.username, u.email, u.password, u.nickname, avator=None)
+            u.username, u.email, u.password, u.nickname, avatar=None)
         mutation = data['mutation']
         expect = data['expect']
         result = post_query(mutation)

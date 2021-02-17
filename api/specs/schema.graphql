@@ -27,7 +27,7 @@ input CreateUserInput {
   email: String!
   password: String!
   nickname: String!
-  avator: String
+  avatar: String
   clientMutationId: String
 }
 
@@ -58,7 +58,8 @@ type MeUserNode {
   lastLogin: DateTime
   username: String!
   dateJoined: DateTime!
-  profile: ProfileNode
+  nickname: String!
+  avatar: String
   email: String!
 }
 
@@ -90,17 +91,10 @@ type PostArticlePayload {
   clientMutationId: String
 }
 
-type ProfileNode implements Node {
-  nickname: String!
-  avator: String
-  id: ID!
-}
-
 type Query {
   user(id: ID!): UserNode
-  allUsers(offset: Int, before: String, after: String, first: Int, last: Int, username: String, username_Icontains: String, profile_Nickname: String, profile_Nickname_Icontains: String): UserNodeConnection
+  allUsers(offset: Int, before: String, after: String, first: Int, last: Int, username: String, username_Icontains: String, nickname: String, nickname_Icontains: String): UserNodeConnection
   me: Me
-  profile(id: ID!): ProfileNode
   article(id: ID!): ArticleNode
   allArticles(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection
 }
@@ -109,7 +103,8 @@ type UserNode implements Node {
   lastLogin: DateTime
   username: String!
   dateJoined: DateTime!
-  profile: ProfileNode
+  nickname: String!
+  avatar: String
   id: ID!
 }
 

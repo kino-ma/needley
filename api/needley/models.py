@@ -1,31 +1,20 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
 
-
-
-
-class Profile(models.Model):
-    # User authentication model
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
     # Nickname is display name
     nickname = models.CharField(
         validators=[MinLengthValidator(1)], max_length=20)
     # Avator is a url icon image url
-    avator = models.URLField(
+    avatar = models.URLField(
         validators=[MinLengthValidator(1)], max_length=200, null=True)
 
     def __str__(self):
-        return "@%s" % self.user.username
-
-    @classmethod
-    def lookup_name(cls, name):
-        try:
-            return User.objects.get(name=name)
-        except User.DoesNotExist:
-            return None
+        return "@%s" % self.username
 
 
 class Article(models.Model):

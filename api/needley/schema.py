@@ -1,7 +1,7 @@
 from icecream import ic
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import get_user, login, authenticate, get_user_model
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -10,16 +10,18 @@ from graphql_relay import from_global_id
 
 import graphene
 
-from .models import Profile, Article
+from .models import Article
+
+User = get_user_model()
 
 
 class UserMeta:
     model = User
     filter_fields = {
         'username': ['exact', 'icontains'],
-        'profile__nickname': ['exact', 'icontains'],
+        'nickname': ['exact', 'icontains'],
     }
-    fields = ['username', 'profile', 'date_joined', 'last_login']
+    fields = ['username', 'nickname', 'avatar', 'date_joined', 'last_login']
     interfaces = (relay.Node, )
 
 
@@ -49,13 +51,6 @@ class Me(graphene.ObjectType):
         return info.context.user.is_authenticated
 
 
-class ProfileNode(DjangoObjectType):
-    class Meta:
-        model = Profile
-        filter_fields = ['nickname', 'avator']
-        fields = ['nickname', 'avator']
-        interfaces = (relay.Node, )
-
 
 class ArticleNode(DjangoObjectType):
     class Meta:
@@ -76,8 +71,6 @@ class Query(graphene.ObjectType):
     all_users = DjangoFilterConnectionField(UserNode)
     me = graphene.Field(Me)
 
-    profile = relay.Node.Field(ProfileNode)
-
     article = relay.Node.Field(ArticleNode)
     all_articles = DjangoFilterConnectionField(ArticleNode)
 
@@ -91,7 +84,7 @@ class CreateUser(relay.ClientIDMutation):
         email = graphene.String(required=True)
         password = graphene.String(required=True)
         nickname = graphene.String(required=True)
-        avator = graphene.String()
+        avatar = graphene.String()
 
     user = graphene.Field(UserNode)
 
@@ -101,17 +94,10 @@ class CreateUser(relay.ClientIDMutation):
         email = input.get('email')
         password = input.get('password')
         nickname = input.get('nickname')
-        avator = input.get('avator')
-
-        # name must be unique
-        if User.objects.filter(username=username, email=email):
-            raise Exception(
-                "User with that name already exests: %s" % username)
+        avatar = input.get('avatar')
 
         login_user = User.objects.create_user(
-            username=username, email=email, password=password)
-        profile = Profile.objects.create(
-            user=login_user, nickname=nickname, avator=avator)
+            username=username, email=email, password=password, nickname=nickname, avatar=avatar)
 
         login(info.context, login_user)
         ic(login_user)
