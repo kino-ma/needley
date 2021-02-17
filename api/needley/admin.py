@@ -1,12 +1,15 @@
 import icecream
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as BaseUser
 
 # Register your models here.
 from .models import Article
 
-
+User = get_user_model()
+icecream.ic(UserAdmin.list_display)
+UserAdmin.list_display = ('username', 'email', 'nickname', 'avatar', 'is_staff')
 
 
 class ArticleAdmin(admin.ModelAdmin):
@@ -17,8 +20,8 @@ class ArticleAdmin(admin.ModelAdmin):
     ]
 
 
+admin.site.register(User, UserAdmin)
 admin.site.register(Article, ArticleAdmin)
 
 
 icecream.install()
-
