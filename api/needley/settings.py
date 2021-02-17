@@ -7,7 +7,9 @@ For more information on this file, see
 https://docs.djangoproject.com/en/3.1/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/3.1/ref/settings/
+https://docs.djangoproject
+    
+    .com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
@@ -38,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'graphene_django', # Required for GraphiQL
+    'graphene_django',  # Required for GraphiQL
 
     'needley.apps.NeedleyConfig',
 ]
