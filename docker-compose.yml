@@ -3,9 +3,9 @@ version: "3"
 services:
   db:
     image: postgres
-    #user: postgres
+    user: postgres
     volumes:
-      - ./db/data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
@@ -32,3 +32,6 @@ services:
       - "8001:8000"
     depends_on:
       - db
+
+volumes:
+  db_data:
