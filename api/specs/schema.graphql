@@ -1,0 +1,119 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type ArticleNode implements Node {
+  author: MeUserNode!
+  title: String!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  id: ID!
+}
+
+type ArticleNodeConnection {
+  pageInfo: PageInfo!
+  edges: [ArticleNodeEdge]!
+}
+
+type ArticleNodeEdge {
+  node: ArticleNode
+  cursor: String!
+}
+
+input CreateUserInput {
+  username: String!
+  email: String!
+  password: String!
+  nickname: String!
+  avatar: String
+  clientMutationId: String
+}
+
+type CreateUserPayload {
+  user: UserNode
+  clientMutationId: String
+}
+
+scalar DateTime
+
+input LoginInput {
+  username: String!
+  password: String!
+  clientMutationId: String
+}
+
+type LoginPayload {
+  me: UserNode
+  clientMutationId: String
+}
+
+type Me {
+  user: UserNode
+  ok: Boolean
+}
+
+type MeUserNode {
+  lastLogin: DateTime
+  username: String!
+  dateJoined: DateTime!
+  nickname: String!
+  avatar: String
+  email: String!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload
+  login(input: LoginInput!): LoginPayload
+  postArticle(input: PostArticleInput!): PostArticlePayload
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input PostArticleInput {
+  title: String!
+  content: String!
+  clientMutationId: String
+}
+
+type PostArticlePayload {
+  article: ArticleNode
+  clientMutationId: String
+}
+
+type Query {
+  user(id: ID!): UserNode
+  allUsers(offset: Int, before: String, after: String, first: Int, last: Int, username: String, username_Icontains: String, nickname: String, nickname_Icontains: String): UserNodeConnection
+  me: Me
+  article(id: ID!): ArticleNode
+  allArticles(offset: Int, before: String, after: String, first: Int, last: Int, author: ID, title: String, title_Icontains: String, content: String, content_Icontains: String, createdAt: DateTime, createdAt_Lt: DateTime, createdAt_Gt: DateTime, updatedAt: DateTime, updatedAt_Lt: DateTime, updatedAt_Gt: DateTime): ArticleNodeConnection
+}
+
+type UserNode implements Node {
+  lastLogin: DateTime
+  username: String!
+  dateJoined: DateTime!
+  nickname: String!
+  avatar: String
+  id: ID!
+}
+
+type UserNodeConnection {
+  pageInfo: PageInfo!
+  edges: [UserNodeEdge]!
+}
+
+type UserNodeEdge {
+  node: UserNode
+  cursor: String!
+}

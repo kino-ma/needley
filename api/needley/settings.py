@@ -7,7 +7,9 @@ For more information on this file, see
 https://docs.djangoproject.com/en/3.1/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/3.1/ref/settings/
+https://docs.djangoproject
+    
+    .com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
@@ -37,6 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'graphene_django',  # Required for GraphiQL
+
+    'needley.apps.NeedleyConfig',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +91,10 @@ DATABASES = {
 }
 
 
+# Use custom User model in auth
+AUTH_USER_MODEL = 'needley.User'
+
+
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
@@ -122,3 +132,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+GRAPHENE = {
+    "SCHEMA": "needley.schema.schema",
+    "SCHEMA_OUTPUT": "specs/schema.graphql"
+}
+
+
+# Store CSRF token in the user's session instead of in a cookie.
+CSRF_USE_COOKIE = True
+
+# Requests HTTP are directed to HTTPS
+# SECURE_SSL_REDIRECT = True
+
+# Ensure all requests done over HTTPS
+# Having plan to enable this after this service stabilized
+# SECURE_HSTS_SECONDS = 1
